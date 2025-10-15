@@ -3,12 +3,10 @@ from __future__ import annotations
 import os
 import socket
 from datetime import datetime, UTC
-from typing import Dict, List
-from typing import Optional
+from typing import List
 from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException
-from fastapi import Query, Path
+from fastapi import FastAPI
 from starlette.responses import JSONResponse
 
 from models.address import AddressBase, AddressRead, AddressCreate, AddressUpdate
@@ -16,10 +14,6 @@ from models.customer import CustomerRead, CustomerCreate, CustomerUpdate
 from models.health import Health
 
 port = int(os.environ.get("FASTAPIPORT", 8000))
-
-# -----------------------------------------------------------------------------
-# Fake in-memory "databases"
-# -----------------------------------------------------------------------------
 
 app = FastAPI(
     title="Customer API",
@@ -80,7 +74,7 @@ def get_customer_by_id(customer_id: str):
         updated_at=datetime.now(UTC),
     )
 
-@app.patch("/courses/{customer_id}", response_model=CustomerRead)
+@app.patch("/customers/{customer_id}", response_model=CustomerRead)
 def update_customer(customer_id: str, update: CustomerUpdate):
     existing = CustomerRead(
         customer_id=uuid4(),
@@ -112,7 +106,7 @@ def update_customer(customer_id: str, update: CustomerUpdate):
 
     return CustomerRead(**data)
 
-@app.delete("/courses/{customer_id}", status_code=204)
+@app.delete("/customers/{customer_id}", status_code=204)
 def delete_customer(customer_id: str):
     return JSONResponse(status_code=204, content=None)
 
@@ -122,7 +116,7 @@ def delete_customer(customer_id: str):
 @app.post("/addresses", response_model=AddressRead, status_code=201)
 def create_address(address: AddressCreate):
     """
-    Dummy implementation: returns an AddressRead with generated ID and timestamps.
+    Dummy implementation: returns an Address with generated ID and timestamps.
     """
     return AddressRead(
         address_id=uuid4(),
@@ -182,8 +176,8 @@ def update_address(customer_id: str, address_id: str, update: AddressUpdate):
     return AddressRead(**data)
 
 @app.delete("/customers/{customer_id}/addresses/{address_id}", status_code=204)
-def delete_address(address_uni: str):
-    return
+def delete_address(customer_id: str, address_uni: str):
+    return "Address Deleted", 204
 
 # -----------------------------------------------------------------------------
 # Root

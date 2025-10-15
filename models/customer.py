@@ -180,7 +180,7 @@ class CustomerRead(CustomerBase):
                     "first_name": "Rahul",
                     "middle_name": "Kumar",
                     "last_name": "Singh",
-                    "university_id": "UNI123456",
+                    "university_id": "UNI0001",
                     "email": "rahul@columbia.edu",
                     "phone": "+1-646-895-5796",
                     "birth_date": "2000-07-15",
