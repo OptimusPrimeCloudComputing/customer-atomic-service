@@ -3,27 +3,27 @@ from __future__ import annotations
 import os
 import socket
 from datetime import datetime, UTC
-from typing import List
-from uuid import uuid4
+from typing import Dict
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from starlette.responses import JSONResponse
 
-from models.address import AddressBase, AddressRead, AddressCreate, AddressUpdate
 from models.customer import CustomerRead, CustomerCreate, CustomerUpdate
 from models.health import Health
 
 port = int(os.environ.get("FASTAPIPORT", 8000))
 
+customers: Dict[str, CustomerRead] = {}
+
 app = FastAPI(
     title="Customer API",
-    description="Service for managing customer data",
+    description="Atomic Service for managing customer data",
     version="0.0.1",
 )
 
-# -----------------------------------------------------------------------------
+# ------------------------------
 # Customer Management endpoints
-# -----------------------------------------------------------------------------
+# ------------------------------
 
 def make_health() -> Health:
     return Health(
@@ -39,156 +39,66 @@ def get_health():
 
 @app.post("/customers", response_model=CustomerRead, status_code=201)
 def create_customer(customer: CustomerCreate):
-    """
-    Dummy implementation: returns a CustomerRead object without saving to a real database.
-    """
-    return CustomerRead(
-        customer_id=uuid4(),
-        created_at=datetime.now(UTC),
-        updated_at=datetime.now(UTC),
-        **customer.model_dump()
+    now = datetime.now(UTC)
+    uni_id = customer.university_id
+
+    if uni_id in customers:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Customer with university id '{uni_id}' already exists.",
+        )
+
+    customer_obj = CustomerRead(
+        created_at=now,
+        updated_at=now,
+        **customer.model_dump(),
     )
 
-@app.get("/customers/{customer_id}", response_model=CustomerRead)
-def get_customer_by_id(customer_id: str):
-    return CustomerRead(
-        customer_id=uuid4(),
-        first_name="Rahul",
-        middle_name="K.",
-        last_name="Singh",
-        university_id="UNI0001",
-        email="rahul.singh@columbia.edu",
-        phone="+1-555-123-4567",
-        birth_date=datetime(1995, 5, 20).date(),
-        status="active",
-        address=[
-            AddressBase(
-                street="123 Broadway Ave",
-                city="New York",
-                state="NY",
-                postal_code="10027",
-                country="USA",
-            )
-        ],
-        created_at=datetime.now(UTC),
-        updated_at=datetime.now(UTC),
-    )
+    customers[uni_id] = customer_obj
+    return customer_obj
 
-@app.patch("/customers/{customer_id}", response_model=CustomerRead)
-def update_customer(customer_id: str, update: CustomerUpdate):
-    existing = CustomerRead(
-        customer_id=uuid4(),
-        first_name="Rahul",
-        middle_name="K.",
-        last_name="Singh",
-        university_id="UNI0001",
-        email="rahul.singh@columbia.edu",
-        phone="+1-555-123-4567",
-        birth_date=datetime(1995, 5, 20).date(),
-        status="active",
-        address=[
-            AddressBase(
-                street="123 Broadway Ave",
-                city="New York",
-                state="NY",
-                postal_code="10027",
-                country="USA",
-            )
-        ],
-        created_at=datetime.now(UTC),
-        updated_at=datetime.now(UTC),
-    )
+@app.get("/customers/{university_id}", response_model=CustomerRead)
+def get_customer_by_id(university_id: str):
+    customer = customers.get(university_id)
+    if customer is None:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    return customer
 
-    # Merge updates into the existing record
-    data = existing.model_dump()
-    data.update(update.model_dump(exclude_unset=True))
-    data["updated_at"] = datetime.now(UTC)
+@app.patch("/customers/{university_id}", response_model=CustomerRead)
+def update_customer(university_id: str, update: CustomerUpdate):
+    existing = customers.get(university_id)
+    if existing is None:
+        raise HTTPException(status_code=404, detail="Customer not found")
 
-    return CustomerRead(**data)
+    update_data = update.model_dump(exclude_unset=True)
+    update_data.pop("university_id", None)
 
-@app.delete("/customers/{customer_id}", status_code=204)
-def delete_customer(customer_id: str):
+    updated = existing.copy(update=update_data)
+    updated.updated_at = datetime.now(UTC)
+
+    customers[university_id] = updated
+    return updated
+
+@app.delete("/customers/{university_id}", status_code=204)
+def delete_customer(university_id: str):
+    if university_id not in customers:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    del customers[university_id]
     return JSONResponse(status_code=204, content=None)
 
-# -----------------------------------------------------------------------------
-# Address endpoints
-# -----------------------------------------------------------------------------
-@app.post("/addresses", response_model=AddressRead, status_code=201)
-def create_address(address: AddressCreate):
-    """
-    Dummy implementation: returns an Address with generated ID and timestamps.
-    """
-    return AddressRead(
-        address_id=uuid4(),
-        created_at=datetime.now(UTC),
-        updated_at=datetime.now(UTC),
-        **address.model_dump()
-    )
-
-@app.get("/customers/{customer_id}/addresses", response_model=List[AddressRead])
-def list_customer_addresses(customer_id: str):
-    """
-    Dummy implementation: returns a static list of addresses for the given customer_id.
-    """
-    # Return a dummy list of addresses
-    return [
-        AddressRead(
-            address_id=uuid4(),
-            street="123 Broadway Ave",
-            city="New York",
-            state="NY",
-            postal_code="10027",
-            country="USA",
-            created_at=datetime.now(UTC),
-            updated_at=datetime.now(UTC),
-        ),
-        AddressRead(
-            address_id=uuid4(),
-            street="456 Elm Street",
-            city="Boston",
-            state="MA",
-            postal_code="02118",
-            country="USA",
-            created_at=datetime.now(UTC),
-            updated_at=datetime.now(UTC),
-        ),
-    ]
-
-@app.patch("/customers/{customer_id}/addresses/{address_id}",
-           response_model=AddressRead
-           )
-def update_address(customer_id: str, address_id: str, update: AddressUpdate):
-    existing = AddressRead(
-        address_id=uuid4(),
-        street="123 Broadway Ave",
-        city="New York",
-        state="NY",
-        postal_code="10027",
-        country="USA",
-        created_at=datetime.now(UTC),
-        updated_at=datetime.now(UTC),
-    )
-
-    data = existing.model_dump()
-    data.update(update.model_dump(exclude_unset=True))
-    data["updated_at"] = datetime.now(UTC)
-
-    return AddressRead(**data)
-
-@app.delete("/customers/{customer_id}/addresses/{address_id}", status_code=204)
-def delete_address(customer_id: str, address_uni: str):
-    return "Address Deleted", 204
-
-# -----------------------------------------------------------------------------
-# Root
-# -----------------------------------------------------------------------------
 @app.get("/")
 def root():
-    return {"message": "Welcome to the Columbia's Second hand store API. See /docs for OpenAPI UI."}
+    return {
+        "message": "Customer Atomic Service (keyed by university_id) use http://0.0.0.0:8000/docs for API documentation.",
+        ""
+        "endpoints": [
+            "/health",
+            "/customers",
+            "/customers/{university_id}",
+        ],
+    }
 
-# -----------------------------------------------------------------------------
-# Entrypoint for `python main.py`
-# -----------------------------------------------------------------------------
 if __name__ == "__main__":
     import uvicorn
 
