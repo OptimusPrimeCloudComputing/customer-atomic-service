@@ -16,6 +16,7 @@ from customer_repository import (
 from db import get_db, Base, engine
 from models.customer import CustomerRead, CustomerCreate, CustomerUpdate
 from models.health import Health
+from sqlalchemy.exc import OperationalError
 
 port = int(os.environ.get("FASTAPIPORT", 8000))
 
@@ -37,9 +38,16 @@ def make_health() -> Health:
         ip_address=socket.gethostbyname(socket.gethostname())
     )
 
+# @app.on_event("startup")
+# def on_startup():
+#     Base.metadata.create_all(bind=engine)
 @app.on_event("startup")
 def on_startup():
-    Base.metadata.create_all(bind=engine)
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("DB connected & tables ensured at startup.")
+    except OperationalError as e:
+        print(f"DB initialization FAILED at startup: {e}")
 
 @app.get("/health", response_model=Health)
 def get_health():
