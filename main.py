@@ -5,9 +5,16 @@ import socket
 from datetime import datetime, UTC
 from typing import Dict
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
+from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
 
+from customer_repository import (
+    CustomerRepository,
+    CustomerNotFound,
+    CustomerAlreadyExists,
+)
+from db import get_db, Base, engine
 from models.customer import CustomerRead, CustomerCreate, CustomerUpdate
 from models.health import Health
 
@@ -17,8 +24,8 @@ customers: Dict[str, CustomerRead] = {}
 
 app = FastAPI(
     title="Customer API",
-    description="Atomic Service for managing customer data",
-    version="0.0.1",
+    description="Atomic Service for managing customer data (MySQL-backed, repository pattern)",
+    version="0.0.2",
 )
 
 # ------------------------------
@@ -33,58 +40,60 @@ def make_health() -> Health:
         ip_address=socket.gethostbyname(socket.gethostname())
     )
 
+@app.on_event("startup")
+def on_startup():
+    Base.metadata.create_all(bind=engine)
+
 @app.get("/health", response_model=Health)
 def get_health():
     return make_health()
 
 @app.post("/customers", response_model=CustomerRead, status_code=201)
-def create_customer(customer: CustomerCreate):
-    now = datetime.now(UTC)
-    uni_id = customer.university_id
+def create_customer(
+        customer: CustomerCreate,
+        db: Session = Depends(get_db),
+):
+    repo = CustomerRepository(db)
+    try:
+        return repo.create(customer)
+    except CustomerAlreadyExists as e:
+        raise HTTPException(status_code=409, detail=str(e))
 
-    if uni_id in customers:
-        raise HTTPException(
-            status_code=409,
-            detail=f"Customer with university id '{uni_id}' already exists.",
-        )
-
-    customer_obj = CustomerRead(
-        created_at=now,
-        updated_at=now,
-        **customer.model_dump(),
-    )
-
-    customers[uni_id] = customer_obj
-    return customer_obj
 
 @app.get("/customers/{university_id}", response_model=CustomerRead)
-def get_customer_by_id(university_id: str):
-    customer = customers.get(university_id)
-    if customer is None:
-        raise HTTPException(status_code=404, detail="Customer not found")
-    return customer
+def get_customer_by_id(
+    university_id: str,
+    db: Session = Depends(get_db),
+):
+    repo = CustomerRepository(db)
+    try:
+        return repo.get_by_university_id(university_id)
+    except CustomerNotFound as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 @app.patch("/customers/{university_id}", response_model=CustomerRead)
-def update_customer(university_id: str, update: CustomerUpdate):
-    existing = customers.get(university_id)
-    if existing is None:
-        raise HTTPException(status_code=404, detail="Customer not found")
-
-    update_data = update.model_dump(exclude_unset=True)
-    update_data.pop("university_id", None)
-
-    updated = existing.copy(update=update_data)
-    updated.updated_at = datetime.now(UTC)
-
-    customers[university_id] = updated
-    return updated
+def update_customer(
+    university_id: str,
+    update: CustomerUpdate,
+    db: Session = Depends(get_db),
+):
+    repo = CustomerRepository(db)
+    try:
+        return repo.update(university_id, update)
+    except CustomerNotFound as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 @app.delete("/customers/{university_id}", status_code=204)
-def delete_customer(university_id: str):
-    if university_id not in customers:
-        raise HTTPException(status_code=404, detail="Customer not found")
+def delete_customer(
+    university_id: str,
+    db: Session = Depends(get_db),
+):
+    repo = CustomerRepository(db)
+    try:
+        repo.delete(university_id)
+    except CustomerNotFound as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
-    del customers[university_id]
     return JSONResponse(status_code=204, content=None)
 
 @app.get("/")
