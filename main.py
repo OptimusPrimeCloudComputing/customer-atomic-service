@@ -3,7 +3,6 @@ from __future__ import annotations
 import os
 import socket
 from datetime import datetime, UTC
-from typing import Dict
 
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
@@ -19,8 +18,6 @@ from models.customer import CustomerRead, CustomerCreate, CustomerUpdate
 from models.health import Health
 
 port = int(os.environ.get("FASTAPIPORT", 8000))
-
-customers: Dict[str, CustomerRead] = {}
 
 app = FastAPI(
     title="Customer API",
@@ -100,7 +97,6 @@ def delete_customer(
 def root():
     return {
         "message": "Customer Atomic Service (keyed by university_id) use /docs for API documentation.",
-        ""
         "endpoints": [
             "/health",
             "/customers",

@@ -1,5 +1,6 @@
 from datetime import date
-from sqlalchemy import Column, Integer, String, Date, DateTime
+
+from sqlalchemy import Column, String, Date, DateTime
 from sqlalchemy.sql import func
 from sqlalchemy.orm import Session
 
@@ -18,6 +19,7 @@ class CustomerAlreadyExists(Exception):
 class Customer(Base):
     __tablename__ = "customers"
 
+    # Use university_id as the primary key
     university_id = Column(String(32), primary_key=True, nullable=False)
 
     first_name = Column(String(100), nullable=False)
@@ -35,7 +37,6 @@ class Customer(Base):
 
 
 class CustomerRepository:
-
     def __init__(self, db: Session):
         self.db = db
 
