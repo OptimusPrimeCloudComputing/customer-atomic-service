@@ -18,7 +18,7 @@ from db import get_db, Base, engine
 from models.customer import CustomerRead, CustomerCreate, CustomerUpdate
 from models.health import Health
 
-port = int(os.environ.get("FASTAPIPORT", 8000))
+port = int(os.environ.get("FASTAPIPORT", 8080))
 
 customers: Dict[str, CustomerRead] = {}
 
