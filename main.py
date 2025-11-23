@@ -90,7 +90,7 @@ def delete_customer(university_id: str):
 @app.get("/")
 def root():
     return {
-        "message": "Customer Atomic Service (keyed by university_id) use http://0.0.0.0:8000/docs for API documentation.",
+        "message": "Customer Atomic Service (keyed by university_id) use /docs for API documentation.",
         ""
         "endpoints": [
             "/health",
