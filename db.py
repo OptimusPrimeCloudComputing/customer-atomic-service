@@ -3,9 +3,13 @@ from urllib.parse import quote_plus
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DB_USER = os.getenv("DB_USER", "myapp_user")
-DB_PASS = os.getenv("DB_PASS", "TestPass@123")
-DB_NAME = os.getenv("DB_NAME", "customer")
+# DB_USER = os.getenv("DB_USER", "myapp_user")
+# DB_PASS = os.getenv("DB_PASS", "TestPass@123")
+# DB_NAME = os.getenv("DB_NAME", "customer")
+
+DB_USER = "myapp_user"
+DB_PASS = "TestPass@123"
+DB_NAME = "customer"
 
 # Cloud Run uses Unix socket via built-in Cloud SQL connector
 INSTANCE_CONNECTION_NAME = os.getenv("INSTANCE_CONNECTION_NAME")  # e.g., "project:region:instance"
