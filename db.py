@@ -12,8 +12,8 @@ DB_PASS = "TestPass@123"
 DB_NAME = "customer"
 
 # Cloud Run uses Unix socket via built-in Cloud SQL connector
-INSTANCE_CONNECTION_NAME = os.getenv("INSTANCE_CONNECTION_NAME")  # e.g., "project:region:instance"
-
+# INSTANCE_CONNECTION_NAME = os.getenv("INSTANCE_CONNECTION_NAME")  # e.g., "project:region:instance" Put none here below for local deployment
+INSTANCE_CONNECTION_NAME = "cloud-computing-478817:us-central1:optimus-prime"
 # Encode password for URL
 encoded_pass = quote_plus(DB_PASS)
 
