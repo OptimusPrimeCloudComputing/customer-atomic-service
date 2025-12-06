@@ -4,7 +4,8 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 DB_USER = os.getenv("DB_USER", "root")
-DB_PASS = os.getenv("DB_PASS", "Password1!")
+# DB_PASS = os.getenv("DB_PASS", "TestPass123@")
+DB_PASS = 'TestPass123@'
 DB_NAME = os.getenv("DB_NAME", "customer")
 DB_HOST = os.getenv("DB_HOST", "34.171.164.80")
 DB_PORT = os.getenv("DB_PORT", "3306")
