@@ -13,7 +13,7 @@ from customer_repository import (
     CustomerNotFound,
     CustomerAlreadyExists,
 )
-from db import get_db, Base, engine
+from db import get_db, Base, engine, ensure_database_exists, ensure_tables_exist
 from models.customer import CustomerRead, CustomerCreate, CustomerUpdate
 from models.health import Health
 from sqlalchemy.exc import OperationalError
@@ -41,13 +41,24 @@ def make_health() -> Health:
 # @app.on_event("startup")
 # def on_startup():
 #     Base.metadata.create_all(bind=engine)
+
 @app.on_event("startup")
 def on_startup():
     try:
+        # Step 1: Ensure database exists
+        ensure_database_exists()
+
+        # Step 2: Ensure custom tables exist (like addresses)
+        ensure_tables_exist()
+
+        # Step 3: Create tables from SQLAlchemy models
         Base.metadata.create_all(bind=engine)
-        print("DB connected & tables ensured at startup.")
+
+        print("DB connected & all tables ensured at startup.")
     except OperationalError as e:
         print(f"DB initialization FAILED at startup: {e}")
+    except Exception as e:
+        print(f"Startup error: {e}")
 
 @app.get("/health", response_model=Health)
 def get_health():
