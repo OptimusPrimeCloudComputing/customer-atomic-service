@@ -65,6 +65,17 @@ def create_customer(
         raise HTTPException(status_code=409, detail=str(e))
 
 
+@app.get("/customers/by-email/{email}", response_model=CustomerRead)
+def get_customer_by_email(
+    email: str,
+    db: Session = Depends(get_db),
+):
+    repo = CustomerRepository(db)
+    try:
+        return repo.get_by_email(email)
+    except CustomerNotFound as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
 @app.get("/customers/{university_id}", response_model=CustomerRead)
 def get_customer_by_id(
     university_id: str,
@@ -109,6 +120,7 @@ def root():
             "/health",
             "/customers",
             "/customers/{university_id}",
+            "/customers/by-email/{email}",
         ],
     }
 

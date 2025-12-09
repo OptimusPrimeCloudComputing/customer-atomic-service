@@ -92,6 +92,17 @@ class CustomerRepository:
 
         return self._to_read_model(db_customer)
 
+    def get_by_email(self, email: str) -> CustomerRead:
+        db_customer = (
+            self.db.query(Customer)
+            .filter(Customer.email == email)
+            .first()
+        )
+        if db_customer is None:
+            raise CustomerNotFound("Customer not found")
+
+        return self._to_read_model(db_customer)
+
     def update(self, university_id: str, update_in: CustomerUpdate) -> CustomerRead:
         db_customer = (
             self.db.query(Customer)
