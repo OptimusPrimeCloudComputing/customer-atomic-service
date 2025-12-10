@@ -27,7 +27,7 @@ app = FastAPI(
 )
 
 # ------------------------------
-# Customer Management endpoints
+# DefineCustomer Management endpoints
 # ------------------------------
 
 def make_health() -> Health:
