@@ -1,0 +1,32 @@
+steps:
+  # 1. Build using your existing Dockerfile
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'build',
+        '-t', 'europe-west1-docker.pkg.dev/cloud-computing-478817/cloud-run-images/customer-atomic-service:$SHORT_SHA',
+        '.'
+      ]
+
+  # 2. Push the image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'push',
+        'europe-west1-docker.pkg.dev/cloud-computing-478817/cloud-run-images/customer-atomic-service:$SHORT_SHA'
+      ]
+
+  # 3. Deploy that exact image to Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      [
+        'run', 'deploy', 'customer-atomic-service',
+        '--image=europe-west1-docker.pkg.dev/cloud-computing-478817/cloud-run-images/customer-atomic-service:$SHORT_SHA',
+        '--region=europe-west1',
+        '--platform=managed',
+        '--allow-unauthenticated',
+        '--traffic=latest=100'
+      ]
+
+images:
+  - europe-west1-docker.pkg.dev/cloud-computing-478817/cloud-run-images/customer-atomic-service:$SHORT_SHA
