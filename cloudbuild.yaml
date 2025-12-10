@@ -30,3 +30,6 @@ steps:
 
 images:
   - europe-west1-docker.pkg.dev/cloud-computing-478817/cloud-run-images/customer-atomic-service:$SHORT_SHA
+
+options:
+  logging: CLOUD_LOGGING_ONLY
