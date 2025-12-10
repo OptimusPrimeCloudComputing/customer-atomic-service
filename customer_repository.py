@@ -1,3 +1,4 @@
+import logging
 from datetime import date
 
 from sqlalchemy import Column, String, Date, DateTime
@@ -99,6 +100,7 @@ class CustomerRepository:
             .first()
         )
         if db_customer is None:
+            print("Customer with email %s not found", email)
             raise CustomerNotFound("Customer not found")
 
         return self._to_read_model(db_customer)
