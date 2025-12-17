@@ -45,7 +45,7 @@ def make_health() -> Health:
 def on_startup():
     try:
         Base.metadata.create_all(bind=engine)
-        print("🔥 NEW VERSION ACTIVE 🔥")
+        print("NEW VERSION ACTIVE")
         print("DB connected & tables ensured at startup.")
     except OperationalError as e:
         print(f"DB initialization FAILED at startup: {e}")

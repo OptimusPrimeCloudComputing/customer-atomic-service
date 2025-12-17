@@ -8,7 +8,7 @@ from typing_extensions import Annotated
 
 # Email must end with .edu
 EduEmail = Annotated[str, StringConstraints(pattern=r"^[\w\.-]+@[\w\.-]+\.edu$", strip_whitespace=True)]
-CourseIDType = Annotated[str, StringConstraints(pattern=r"^[A-Z]{2,4}\d{3,4}$")]
+UniversityIDType = Annotated[str, StringConstraints(pattern=r"^[A-Za-z]{2,4}\d{3,4}$")]
 
 class CustomerBase(BaseModel):
     first_name: str = Field(
@@ -27,7 +27,7 @@ class CustomerBase(BaseModel):
         json_schema_extra={"example": "Singh"},
     )
 
-    university_id: CourseIDType = Field(
+    university_id: UniversityIDType = Field(
         ...,
         description="University ID (primary identifier in this service).",
         json_schema_extra={"example": "UNI1234"},
