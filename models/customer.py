@@ -42,7 +42,7 @@ class CustomerBase(BaseModel):
     phone: Optional[str] = Field(
         None,
         description="Contact phone number.",
-        json_schema_extra={"example": "+1-646-895-5796"},
+        json_schema_extra={"example": "+1-999-444-1234"},
     )
 
     birth_date: Optional[date] = Field(
@@ -65,7 +65,7 @@ class CustomerBase(BaseModel):
                 "last_name": "Singh",
                 "university_id": "UNI1234",
                 "email": "rahul@columbia.edu",
-                "phone": "+1-646-895-5796",
+                "phone": "+1-555-555-2222",
                 "birth_date": "2000-07-15",
                 "status": "active",
             }
@@ -84,7 +84,7 @@ class CustomerCreate(CustomerBase):
                     "last_name": "Singh",
                     "university_id": "UNI1234",
                     "email": "rahul@columbia.edu",
-                    "phone": "+1-646-895-5796",
+                    "phone": "+1-666-777-7777",
                     "birth_date": "2000-07-15",
                     "status": "active",
                 }
@@ -118,7 +118,7 @@ class CustomerUpdate(BaseModel):
     phone: Optional[str] = Field(
         None,
         description="Contact phone.",
-        json_schema_extra={"example": "+1-646-895-5796"},
+        json_schema_extra={"example": "+1-676-888-2222"},
     )
     birth_date: Optional[date] = Field(
         None,
@@ -166,7 +166,7 @@ class CustomerRead(CustomerBase):
                     "last_name": "Singh",
                     "university_id": "UNI0001",
                     "email": "rahul@columbia.edu",
-                    "phone": "+1-646-895-5796",
+                    "phone": "+1-444-777-8888",
                     "birth_date": "2000-07-15",
                     "status": "active",
                     "created_at": "2025-09-30T10:20:30Z",
